@@ -27,41 +27,52 @@ namespace TTSWindowsService
 
         protected override void OnStart(string[] args)
         {
-
             System.Timers.Timer timer = new System.Timers.Timer();
             timer.Interval = 60000; // 60 seconds
             timer.Elapsed += new System.Timers.ElapsedEventHandler(this.OnTimer);
             timer.Start();
-
         }
 
         public void OnTimer(object sender, System.Timers.ElapsedEventArgs args)
         {
-
-            if(host == null || host.State != CommunicationState.Opened)
+            if (host == null || host.State != CommunicationState.Opened)
             {
-                EventLog.WriteEntry("starting webhost");
-
+                #region create temp directory if it doesn't exist
                 if (!Directory.Exists(ConfigurationManager.AppSettings["tempWaveFileLocation"]))
                 {
-                    Directory.CreateDirectory(ConfigurationManager.AppSettings["tempWaveFileLocation"]); 
+                    try
+                    {
+                        Directory.CreateDirectory(ConfigurationManager.AppSettings["tempWaveFileLocation"]);
+                    }
+                    catch (Exception e)
+                    {
+                        EventLog.WriteEntry("exception creating temp folder: " + e.Message);
+                    }
                 }
-                var hostURI = new Uri("http://localhost:" + ConfigurationManager.AppSettings["wavServicePort"]);
-                host = new WebServiceHost(typeof(TTS_ServiceLibrary.TTSService), hostURI);
-                ServiceEndpoint ep = host.AddServiceEndpoint(typeof(TTS_ServiceLibrary.TTSIService), new WebHttpBinding(), "");
-                ServiceDebugBehavior stp = host.Description.Behaviors.Find<ServiceDebugBehavior>();
-                stp.HttpHelpPageEnabled = false;
-                stp.IncludeExceptionDetailInFaults = false;
-                host.Open();
-                EventLog.WriteEntry("web service host started on " + hostURI.AbsoluteUri);
-            }
+                #endregion
 
+                try
+                {
+                    var hostURI = new Uri("http://localhost:" + ConfigurationManager.AppSettings["wavServicePort"]);
+                    EventLog.WriteEntry("starting webhost on " + hostURI);
+                    host = new WebServiceHost(typeof(TTS_ServiceLibrary.TTSService), hostURI);
+                    ServiceEndpoint ep = host.AddServiceEndpoint(typeof(TTS_ServiceLibrary.TTSIService), new WebHttpBinding(), "");
+                    ServiceDebugBehavior stp = host.Description.Behaviors.Find<ServiceDebugBehavior>();
+                    stp.HttpHelpPageEnabled = false;
+                    stp.IncludeExceptionDetailInFaults = false;
+                    host.Open();
+                    EventLog.WriteEntry("web service host started on " + hostURI.AbsoluteUri);
+                }
+                catch (Exception ex)
+                {
+                    EventLog.WriteEntry("exception starting webserver: " + ex.Message);
+                }
+            }
             cleanupOldFiles();
         }
 
         private void startWinService()
         {
-            
         }
 
         private void cleanupOldFiles()
@@ -89,7 +100,7 @@ namespace TTSWindowsService
                     }
                 }
             }
-            if(filesRemoved)
+            if (filesRemoved)
             {
                 EventLog.WriteEntry("files successfully removed");
             }
@@ -97,7 +108,7 @@ namespace TTSWindowsService
 
         protected override void OnStop()
         {
-            if(host != null && host.State == CommunicationState.Opened)
+            if (host != null && host.State == CommunicationState.Opened)
             {
                 host.Close();
             }

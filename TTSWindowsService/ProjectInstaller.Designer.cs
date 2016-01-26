@@ -33,6 +33,7 @@
             // 
             // serviceProcessInstaller1
             // 
+            this.serviceProcessInstaller1.Account = System.ServiceProcess.ServiceAccount.LocalSystem;
             this.serviceProcessInstaller1.Password = null;
             this.serviceProcessInstaller1.Username = null;
             // 
@@ -41,6 +42,7 @@
             this.serviceInstaller1.Description = "OUHSC Text To Speech Service";
             this.serviceInstaller1.DisplayName = "OUHSC TTS";
             this.serviceInstaller1.ServiceName = "TTSWinService";
+            this.serviceInstaller1.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
             // 
             // ProjectInstaller
             // 
