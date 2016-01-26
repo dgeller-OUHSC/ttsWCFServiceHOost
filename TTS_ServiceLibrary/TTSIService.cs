@@ -14,15 +14,7 @@ namespace TTS_ServiceLibrary
     {
         [OperationContract]
         [WebGet]
-        string GetMessage(string inputMessage);
-
-        [OperationContract]
-        [WebInvoke]
-        string PostMessage(string inputMessage);
-
-        [OperationContract]
-        [WebGet]
-        Stream GetText(string convertText);
+        Stream GetTTSAudio(string convertText);
 
     }
 }
