@@ -51,6 +51,7 @@ namespace TTSWindowsService
                 ServiceEndpoint ep = host.AddServiceEndpoint(typeof(TTS_ServiceLibrary.TTSIService), new WebHttpBinding(), "");
                 ServiceDebugBehavior stp = host.Description.Behaviors.Find<ServiceDebugBehavior>();
                 stp.HttpHelpPageEnabled = false;
+                stp.IncludeExceptionDetailInFaults = false;
                 host.Open();
                 EventLog.WriteEntry("web service host started on " + hostURI.AbsoluteUri);
             }
@@ -69,7 +70,7 @@ namespace TTSWindowsService
             var filesRemoved = false;
             foreach (var fileItem in dirFiles)
             {
-                if (File.GetCreationTime(fileItem) < DateTime.Now.AddMinutes(-2))
+                if (File.GetCreationTime(fileItem) < DateTime.Now.AddMinutes(-1 * int.Parse(ConfigurationManager.AppSettings["minsToKeepWavFile"])))
                 {
                     lock (fileItem)
                     {
@@ -81,7 +82,9 @@ namespace TTSWindowsService
                                 filesRemoved = true;
                             }
                             catch (Exception ex)
-                            { }
+                            {
+                                EventLog.WriteEntry("exception deleting file" + ex.Message);
+                            }
                         }
                     }
                 }
@@ -99,5 +102,6 @@ namespace TTSWindowsService
                 host.Close();
             }
         }
+
     }
 }
